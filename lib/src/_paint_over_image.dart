@@ -439,6 +439,7 @@ class ImagePainterState extends State<ImagePainter> {
 
   int _strokeMultiplier = 1;
   late TextDelegate textDelegate;
+
   @override
   void initState() {
     super.initState();
@@ -777,26 +778,47 @@ class ImagePainterState extends State<ImagePainter> {
     );
   }
 
-  PopupMenuItem _showRangeSlider() {
-    return PopupMenuItem(
-      enabled: false,
-      child: SizedBox(
-        width: double.maxFinite,
-        child: AnimatedBuilder(
-          animation: _controller,
-          builder: (_, __) {
-            return RangedSlider(
-              value: _controller.strokeWidth,
-              onChanged: (value) {
-                _controller.setStrokeWidth(value);
-                if (widget.onStrokeWidthChanged != null) {
-                  widget.onStrokeWidthChanged!(value);
-                }
+  _showRangeSlider() {
+    return showDialog(
+      context: context,
+      builder: (context) {
+        double originalStrokeWidth = _controller.strokeWidth;
+
+        return AlertDialog(
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                _controller.setStrokeWidth(originalStrokeWidth);
+                Navigator.pop(context);
               },
-            );
-          },
-        ),
-      ),
+              child: Text('Cancel'.toUpperCase()),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('OK'),
+            ),
+          ],
+          title: SizedBox(
+            width: double.maxFinite,
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (_, __) {
+                return RangedSlider(
+                  value: _controller.strokeWidth,
+                  onChanged: (value) {
+                    _controller.setStrokeWidth(value);
+                    if (widget.onStrokeWidthChanged != null) {
+                      widget.onStrokeWidthChanged!(value);
+                    }
+                  },
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -921,15 +943,23 @@ class ImagePainterState extends State<ImagePainter> {
               );
             },
           ),
-          PopupMenuButton(
-            tooltip: textDelegate.changeBrushSize,
-            shape: ContinuousRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            icon:
-                widget.brushIcon ?? Icon(Icons.brush, color: Colors.grey[700]),
-            itemBuilder: (_) => [_showRangeSlider()],
+          const SizedBox(
+            width: 10,
           ),
+          InkWell(
+            onTap: _showRangeSlider,
+            child:
+                widget.brushIcon ?? Icon(Icons.brush, color: Colors.grey[700]),
+          ),
+          // PopupMenuButton(
+          //   tooltip: textDelegate.changeBrushSize,
+          //   shape: ContinuousRectangleBorder(
+          //     borderRadius: BorderRadius.circular(20),
+          //   ),
+          //   icon:
+          //       widget.brushIcon ?? Icon(Icons.brush, color: Colors.grey[700]),
+          //   itemBuilder: (_) => _showRangeSlider(),
+          // ),
           AnimatedBuilder(
             animation: _controller,
             builder: (_, __) {
